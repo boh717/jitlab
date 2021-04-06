@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/boh717/jitlab/pkg/gitlab"
 	"github.com/boh717/jitlab/pkg/jira"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -14,9 +15,10 @@ import (
 )
 
 var (
-	cfgFile    string
-	jiraClient jira.JiraService
-	rootCmd    = &cobra.Command{
+	cfgFile      string
+	jiraClient   jira.JiraService
+	gitlabClient gitlab.GitlabService
+	rootCmd      = &cobra.Command{
 		Use:     "jitlab",
 		Short:   "Jitlab integrates Jira and GitLab for a faster development workflow",
 		Long:    ``,
@@ -50,7 +52,6 @@ func initConfig() {
 		home, err := homedir.Dir()
 		cobra.CheckErr(err)
 
-		viper.AddConfigPath(home)
 		viper.SetConfigFile(path.Join(home, ".jitlab.json"))
 	}
 
@@ -58,14 +59,22 @@ func initConfig() {
 		log.Println("Using config file:", viper.ConfigFileUsed())
 	}
 
-	jiraUrl := viper.GetString("jira.baseUrl")
+	jiraUrl := viper.GetString("jira.baseurl")
 	validatedJiraBaseUrl, err := url.Parse(jiraUrl)
 	if err != nil {
-		log.Printf("Jira base URL %s is not a valid", jiraUrl)
-		os.Exit(1)
+		log.Fatalf("Jira base URL %s is not a valid", jiraUrl)
+	}
+	gitlabUrl := viper.GetString("gitlab.baseurl")
+	validatedGitlabBaseUrl, err := url.Parse(gitlabUrl)
+	if err != nil {
+		log.Fatalf("Gitlab base URL %s is not a valid", gitlabUrl)
 	}
 	jiraToken := viper.GetString("jira.token")
 	jiraUsername := viper.GetString("jira.username")
 
+	gitlabToken := viper.GetString("gitlab.token")
+	gitlabGroup := viper.GetString("gitlab.groupid")
+
 	jiraClient = jira.JiraServiceImpl{BaseURL: validatedJiraBaseUrl.String(), Token: jiraToken, Username: jiraUsername}
+	gitlabClient = gitlab.GitlabServiceImpl{BaseURL: validatedGitlabBaseUrl.String(), Token: gitlabToken, Group: gitlabGroup}
 }
