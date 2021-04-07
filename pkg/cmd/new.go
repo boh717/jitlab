@@ -3,7 +3,9 @@ package cmd
 import (
 	"log"
 
+	"github.com/boh717/jitlab/pkg/question"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func NewTicket() *cobra.Command {
@@ -13,8 +15,31 @@ func NewTicket() *cobra.Command {
 		Long:  `Run this command to pick a new jira issue to work on`,
 		Run: func(cmd *cobra.Command, args []string) {
 			log.Println("Picking new issue...")
+			assignedToMe, _ := cmd.Flags().GetBool("me")
+
+			flowType := viper.GetString("board.type")
+			projectKey := viper.GetString("board.location.projectkey")
+			columns := viper.GetStringSlice("columns")
+
+			issues, err := jiraClient.GetIssues(flowType, projectKey, columns, assignedToMe)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			chosenIssue, err := question.AskForIssue(issues)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			cmdErr := gitClient.CreateBranch(chosenIssue)
+			if cmdErr != nil {
+				log.Fatalln(err)
+			}
 		},
 	}
+
+	currentUserFlag := false
+	newCmd.Flags().BoolVar(&currentUserFlag, "me", false, "Only issues assigned to me")
 
 	return newCmd
 

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
 )
 
 var client = http.DefaultClient
@@ -13,6 +15,7 @@ var client = http.DefaultClient
 type JiraService interface {
 	GetBoards() ([]Board, error)
 	GetBoardColumns(board Board) ([]Column, error)
+	GetIssues(flowType string, projectKey string, columns []string, currentUser bool) ([]Issue, error)
 }
 
 type JiraServiceImpl struct {
@@ -53,6 +56,19 @@ type boardConfig struct {
 	} `json:"columnConfig"`
 }
 
+type Issue struct {
+	ID     string `json:"id"`
+	Key    string `json:"key"`
+	Fields struct {
+		Summary string `json:"summary"`
+	} `json:"fields"`
+}
+
+type issueBase struct {
+	Total  int     `json:"total"`
+	Issues []Issue `json:"issues"`
+}
+
 func (j JiraServiceImpl) GetBoards() ([]Board, error) {
 	uri := "/rest/agile/1.0/board"
 
@@ -81,6 +97,44 @@ func (j JiraServiceImpl) GetBoardColumns(board Board) ([]Column, error) {
 	}
 
 	return boardConfig.ColumnConfig.Columns, nil
+}
+
+func (j JiraServiceImpl) GetIssues(flowType string, projectKey string, columns []string, currentUser bool) ([]Issue, error) {
+	searchString := buildSearchString(flowType, projectKey, columns, currentUser)
+	uri := fmt.Sprintf("/rest/api/3/search?jql=%s&fields=summary,assignee&maxResults=50", url.QueryEscape(searchString))
+
+	req, _ := http.NewRequest("GET", j.BaseURL+uri, nil)
+	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", j.Token))
+
+	issue := new(issueBase)
+	err := doRequest(*req, issue)
+	if err != nil {
+		return nil, err
+	}
+
+	return issue.Issues, nil
+
+}
+
+func buildSearchString(flowType string, projectKey string, columns []string, currentUser bool) string {
+	var searchString strings.Builder
+
+	searchString.WriteString(fmt.Sprintf("project = %s AND ", projectKey))
+	quotedColumns := "\"" + strings.Join(columns, "\", \"") + "\""
+	searchString.WriteString(fmt.Sprintf("status in (%s) AND ", quotedColumns))
+	searchString.WriteString("type != Epic ")
+
+	if currentUser {
+		searchString.WriteString("AND assignee=currentUser() ")
+	}
+
+	if flowType == "kanban" || flowType == "simple" {
+		searchString.WriteString("ORDER BY Rank DESC")
+	} else {
+		searchString.WriteString("AND sprint in openSprints()")
+	}
+
+	return searchString.String()
 }
 
 func doRequest(request http.Request, data interface{}) error {

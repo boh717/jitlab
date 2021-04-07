@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/boh717/jitlab/pkg/git"
 	"github.com/boh717/jitlab/pkg/gitlab"
 	"github.com/boh717/jitlab/pkg/jira"
 	"github.com/mitchellh/go-homedir"
@@ -18,6 +19,7 @@ var (
 	cfgFile      string
 	jiraClient   jira.JiraService
 	gitlabClient gitlab.GitlabService
+	gitClient    git.GitService
 	rootCmd      = &cobra.Command{
 		Use:     "jitlab",
 		Short:   "Jitlab integrates Jira and GitLab for a faster development workflow",
@@ -77,4 +79,5 @@ func initConfig() {
 
 	jiraClient = jira.JiraServiceImpl{BaseURL: validatedJiraBaseUrl.String(), Token: jiraToken, Username: jiraUsername}
 	gitlabClient = gitlab.GitlabServiceImpl{BaseURL: validatedGitlabBaseUrl.String(), Token: gitlabToken, Group: gitlabGroup}
+	gitClient = git.GitServiceImpl{}
 }
