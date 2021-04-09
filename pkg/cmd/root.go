@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"regexp"
 
 	"github.com/boh717/jitlab/pkg/git"
 	"github.com/boh717/jitlab/pkg/gitlab"
@@ -77,7 +78,12 @@ func initConfig() {
 	gitlabToken := viper.GetString("gitlab.token")
 	gitlabGroup := viper.GetString("gitlab.groupid")
 
+	branchPrefix := viper.GetString("branchPrefix")
+	branchSuffix := viper.GetString("branchSuffix")
+	keyCommitSeparator := viper.GetString("keyCommitSeparator")
+	branchRegex := regexp.MustCompile(fmt.Sprintf("(%s)(\\w{1,6}-\\d{1,4})-(.*)(%s)", branchPrefix, branchSuffix))
+
 	jiraClient = jira.JiraServiceImpl{BaseURL: validatedJiraBaseUrl.String(), Token: jiraToken, Username: jiraUsername}
 	gitlabClient = gitlab.GitlabServiceImpl{BaseURL: validatedGitlabBaseUrl.String(), Token: gitlabToken, Group: gitlabGroup}
-	gitClient = git.GitServiceImpl{}
+	gitClient = git.GitServiceImpl{BranchPrefix: branchPrefix, BranchSuffix: branchSuffix, KeyCommitSeparator: keyCommitSeparator, BranchRegexp: branchRegex}
 }
