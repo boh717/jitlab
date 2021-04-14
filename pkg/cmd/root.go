@@ -45,6 +45,7 @@ func init() {
 	rootCmd.AddCommand(InitRepo())
 	rootCmd.AddCommand(NewTicket())
 	rootCmd.AddCommand(Commits())
+	rootCmd.AddCommand(MergeRequest())
 }
 
 func initConfig() {

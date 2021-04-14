@@ -44,7 +44,7 @@ func InitRepo() *cobra.Command {
 
 			file, _ := json.MarshalIndent(chosenRepo, "", " ")
 
-			if err := ioutil.WriteFile(".jitab", file, 0644); err != nil {
+			if err := ioutil.WriteFile(".repo", file, 0644); err != nil {
 				log.Fatalln(err)
 			}
 

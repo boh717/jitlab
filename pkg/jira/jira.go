@@ -72,7 +72,7 @@ type issueBase struct {
 func (j JiraServiceImpl) GetBoards() ([]Board, error) {
 	uri := "/rest/agile/1.0/board"
 
-	req, _ := http.NewRequest("GET", j.BaseURL+uri, nil)
+	req, _ := http.NewRequest(http.MethodGet, j.BaseURL+uri, nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", j.Token))
 
 	board := new(boardBase)
@@ -87,7 +87,7 @@ func (j JiraServiceImpl) GetBoards() ([]Board, error) {
 func (j JiraServiceImpl) GetBoardColumns(board Board) ([]Column, error) {
 	uri := fmt.Sprintf("/rest/agile/1.0/board/%d/configuration", board.ID)
 
-	req, _ := http.NewRequest("GET", j.BaseURL+uri, nil)
+	req, _ := http.NewRequest(http.MethodGet, j.BaseURL+uri, nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", j.Token))
 
 	boardConfig := new(boardConfig)
@@ -103,7 +103,7 @@ func (j JiraServiceImpl) GetIssues(flowType string, projectKey string, columns [
 	searchString := buildSearchString(flowType, projectKey, columns, currentUser)
 	uri := fmt.Sprintf("/rest/api/3/search?jql=%s&fields=summary,assignee&maxResults=50", url.QueryEscape(searchString))
 
-	req, _ := http.NewRequest("GET", j.BaseURL+uri, nil)
+	req, _ := http.NewRequest(http.MethodGet, j.BaseURL+uri, nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", j.Token))
 
 	issue := new(issueBase)

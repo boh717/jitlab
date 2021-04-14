@@ -11,8 +11,11 @@ import (
 )
 
 type GitService interface {
+	GetCurrentBranch() (string, error)
 	CreateBranch(issue jira.Issue) error
+	CreateTitleFromBranch(branch string) (string, error)
 	Commit(message string) error
+	Push(branch string) error
 }
 
 type GitServiceImpl struct {
@@ -20,6 +23,20 @@ type GitServiceImpl struct {
 	BranchSuffix       string
 	KeyCommitSeparator string
 	BranchRegexp       *regexp.Regexp
+}
+
+func (g GitServiceImpl) GetCurrentBranch() (string, error) {
+	var out bytes.Buffer
+	replacer := strings.NewReplacer(" ", "", "\n", "")
+
+	command := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	command.Stdout = &out
+	err := command.Run()
+	if err != nil {
+		return "", err
+	}
+
+	return replacer.Replace(out.String()), nil
 }
 
 func (g GitServiceImpl) CreateBranch(issue jira.Issue) error {
@@ -36,9 +53,28 @@ func (g GitServiceImpl) CreateBranch(issue jira.Issue) error {
 
 }
 
+func (g GitServiceImpl) CreateTitleFromBranch(branch string) (string, error) {
+	key := getIssueKeyFromBranch(branch, g.BranchRegexp)
+	title := getIssueTitleFromBranch(branch, g.BranchRegexp)
+
+	prettyTitle := strings.ReplaceAll(title, "-", " ")
+
+	switch {
+	case key != "" && prettyTitle != "":
+		return fmt.Sprintf("%s: %s", key, prettyTitle), nil
+
+	case key == "" && prettyTitle != "":
+		return prettyTitle, nil
+
+	default:
+		return strings.ReplaceAll(branch, "-", " "), nil
+	}
+
+}
+
 func (g GitServiceImpl) Commit(message string) error {
 	var commitMessage string
-	branch, err := getCurrentBranch()
+	branch, err := g.GetCurrentBranch()
 	if err != nil {
 		return err
 	}
@@ -54,16 +90,9 @@ func (g GitServiceImpl) Commit(message string) error {
 	return command.Run()
 }
 
-func getCurrentBranch() (string, error) {
-	var out bytes.Buffer
-	command := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
-	command.Stdout = &out
-	err := command.Run()
-	if err != nil {
-		return "", err
-	}
-
-	return out.String(), nil
+func (g GitServiceImpl) Push(branch string) error {
+	command := exec.Command("git", "push", "--set-upstream", "origin", branch)
+	return command.Run()
 }
 
 func getIssueKeyFromBranch(branch string, r *regexp.Regexp) string {

@@ -38,7 +38,8 @@ func NewTicket() *cobra.Command {
 		},
 	}
 
-	currentUserFlag := false
+	var currentUserFlag bool
+
 	newCmd.Flags().BoolVar(&currentUserFlag, "me", false, "Only issues assigned to me")
 
 	return newCmd
