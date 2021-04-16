@@ -33,7 +33,11 @@ func MergeRequest() *cobra.Command {
 
 			var currentRepository gitlab.Repository
 
-			file, _ := ioutil.ReadFile(".repo")
+			file, err := ioutil.ReadFile(".repo")
+			if err != nil {
+				log.Fatalln("Error reading repository file \".repo\"", err)
+			}
+
 			json.Unmarshal(file, &currentRepository)
 			projectId := fmt.Sprintf("%d", currentRepository.ID)
 

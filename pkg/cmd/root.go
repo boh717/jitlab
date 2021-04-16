@@ -11,17 +11,19 @@ import (
 	"github.com/boh717/jitlab/pkg/git"
 	"github.com/boh717/jitlab/pkg/gitlab"
 	"github.com/boh717/jitlab/pkg/jira"
+	"github.com/boh717/jitlab/pkg/question"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var (
-	cfgFile      string
-	jiraClient   jira.JiraService
-	gitlabClient gitlab.GitlabService
-	gitClient    git.GitService
-	rootCmd      = &cobra.Command{
+	cfgFile        string
+	jiraClient     jira.JiraService
+	gitlabClient   gitlab.GitlabService
+	gitClient      git.GitService
+	questionClient question.QuestionService
+	rootCmd        = &cobra.Command{
 		Use:     "jitlab",
 		Short:   "Jitlab integrates Jira and GitLab for a faster development workflow",
 		Long:    ``,
@@ -87,4 +89,5 @@ func initConfig() {
 	jiraClient = jira.JiraServiceImpl{BaseURL: validatedJiraBaseUrl.String(), Token: jiraToken, Username: jiraUsername}
 	gitlabClient = gitlab.GitlabServiceImpl{BaseURL: validatedGitlabBaseUrl.String(), Token: gitlabToken, Group: gitlabGroup}
 	gitClient = git.GitServiceImpl{BranchPrefix: branchPrefix, BranchSuffix: branchSuffix, KeyCommitSeparator: keyCommitSeparator, BranchRegexp: branchRegex}
+	questionClient = question.QuestionServiceImpl{}
 }

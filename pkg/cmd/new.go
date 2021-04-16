@@ -3,7 +3,6 @@ package cmd
 import (
 	"log"
 
-	"github.com/boh717/jitlab/pkg/question"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -26,7 +25,7 @@ func NewTicket() *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			chosenIssue, err := question.AskForIssue(issues)
+			chosenIssue, err := questionClient.AskForIssue(issues)
 			if err != nil {
 				log.Fatalln(err)
 			}

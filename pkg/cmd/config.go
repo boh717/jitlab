@@ -3,7 +3,6 @@ package cmd
 import (
 	"log"
 
-	"github.com/boh717/jitlab/pkg/question"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -19,7 +18,7 @@ func Config() *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
-			chosenBoard, err := question.AskForBoard(boards)
+			chosenBoard, err := questionClient.AskForBoard(boards)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -29,7 +28,7 @@ func Config() *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			chosenColumns, err := question.AskForColumns(columns)
+			chosenColumns, err := questionClient.AskForColumns(columns)
 			if err != nil {
 				log.Fatalln(err)
 			}

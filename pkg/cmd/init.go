@@ -7,7 +7,6 @@ import (
 	"os"
 	"path"
 
-	"github.com/boh717/jitlab/pkg/question"
 	"github.com/spf13/cobra"
 )
 
@@ -36,7 +35,7 @@ func InitRepo() *cobra.Command {
 
 			var chosenRepo = repositories[0]
 			if len(repositories) > 1 {
-				chosenRepo, err = question.AskForRepository(repositories)
+				chosenRepo, err = questionClient.AskForRepository(repositories)
 				if err != nil {
 					log.Fatalln(err)
 				}
