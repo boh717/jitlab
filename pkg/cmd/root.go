@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -12,18 +13,19 @@ import (
 	"github.com/boh717/jitlab/pkg/gitlab"
 	"github.com/boh717/jitlab/pkg/jira"
 	"github.com/boh717/jitlab/pkg/question"
+	"github.com/boh717/jitlab/pkg/rest"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var (
-	cfgFile        string
-	jiraClient     jira.JiraService
-	gitlabClient   gitlab.GitlabService
-	gitClient      git.GitService
-	questionClient question.QuestionService
-	rootCmd        = &cobra.Command{
+	cfgFile         string
+	jiraService     jira.JiraService
+	gitlabService   gitlab.GitlabService
+	gitService      git.GitService
+	questionService question.QuestionService
+	rootCmd         = &cobra.Command{
 		Use:     "jitlab",
 		Short:   "Jitlab integrates Jira and GitLab for a faster development workflow",
 		Long:    ``,
@@ -31,7 +33,6 @@ var (
 	}
 )
 
-// Execute runs jitlab
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -41,7 +42,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Config file (default is $HOME/.jitlab)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Config file (default is $HOME/.jitlab.json)")
 
 	rootCmd.AddCommand(Config())
 	rootCmd.AddCommand(InitRepo())
@@ -86,8 +87,9 @@ func initConfig() {
 	keyCommitSeparator := viper.GetString("keyCommitSeparator")
 	branchRegex := regexp.MustCompile(fmt.Sprintf("(%s)(\\w{1,6}-\\d{1,4})-(.*)(%s)", branchPrefix, branchSuffix))
 
-	jiraClient = jira.JiraServiceImpl{BaseURL: validatedJiraBaseUrl.String(), Token: jiraToken, Username: jiraUsername}
-	gitlabClient = gitlab.GitlabServiceImpl{BaseURL: validatedGitlabBaseUrl.String(), Token: gitlabToken, Group: gitlabGroup}
-	gitClient = git.GitServiceImpl{BranchPrefix: branchPrefix, BranchSuffix: branchSuffix, KeyCommitSeparator: keyCommitSeparator, BranchRegexp: branchRegex}
-	questionClient = question.QuestionServiceImpl{}
+	client := rest.RestClientImpl{Client: *http.DefaultClient}
+	jiraService = jira.JiraServiceImpl{Client: client, BaseURL: validatedJiraBaseUrl.String(), Token: jiraToken, Username: jiraUsername}
+	gitlabService = gitlab.GitlabServiceImpl{Client: client, BaseURL: validatedGitlabBaseUrl.String(), Token: gitlabToken, Group: gitlabGroup}
+	gitService = git.GitServiceImpl{BranchPrefix: branchPrefix, BranchSuffix: branchSuffix, KeyCommitSeparator: keyCommitSeparator, BranchRegexp: branchRegex}
+	questionService = question.QuestionServiceImpl{}
 }

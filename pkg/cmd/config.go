@@ -14,21 +14,21 @@ func Config() *cobra.Command {
 		Long:  `Run this command the first time you run Jitlab to configure board and columns`,
 		Run: func(cmd *cobra.Command, args []string) {
 			log.Println("Configuring jitlab...")
-			boards, err := jiraClient.GetBoards()
+			boards, err := jiraService.GetBoards()
 			if err != nil {
 				log.Fatalln(err)
 			}
-			chosenBoard, err := questionClient.AskForBoard(boards)
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			columns, err := jiraClient.GetBoardColumns(chosenBoard)
+			chosenBoard, err := questionService.AskForBoard(boards)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			chosenColumns, err := questionClient.AskForColumns(columns)
+			columns, err := jiraService.GetBoardColumns(chosenBoard)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			chosenColumns, err := questionService.AskForColumns(columns)
 			if err != nil {
 				log.Fatalln(err)
 			}

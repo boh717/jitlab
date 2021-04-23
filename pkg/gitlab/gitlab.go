@@ -3,13 +3,11 @@ package gitlab
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-)
 
-var client = http.DefaultClient
+	"github.com/boh717/jitlab/pkg/rest"
+)
 
 type GitlabService interface {
 	SearchProject(search string) ([]Repository, error)
@@ -17,6 +15,7 @@ type GitlabService interface {
 }
 
 type GitlabServiceImpl struct {
+	Client  rest.RestClient
 	BaseURL string
 	Token   string
 	Group   string
@@ -48,8 +47,13 @@ func (g GitlabServiceImpl) SearchProject(search string) ([]Repository, error) {
 	req, _ := http.NewRequest(http.MethodGet, g.BaseURL+uri, nil)
 	req.Header.Set("PRIVATE-TOKEN", g.Token)
 
+	response, err := g.Client.DoRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
 	var repositories []Repository
-	err := doRequest(*req, &repositories)
+	err = g.Client.ProcessRequest(response, repositories)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +62,7 @@ func (g GitlabServiceImpl) SearchProject(search string) ([]Repository, error) {
 }
 
 func (g GitlabServiceImpl) CreateMergeRequest(projectId string, sourceBranch string, targetBranch string, title string, removeSourceBranch bool, squash bool) (MergeRequestResponse, error) {
-	mrResponse := new(MergeRequestResponse)
+	mrResponse := MergeRequestResponse{}
 	uri := fmt.Sprintf("/projects/%s/merge_requests", projectId)
 	request := mrRequest{
 		ID:                 projectId,
@@ -70,42 +74,22 @@ func (g GitlabServiceImpl) CreateMergeRequest(projectId string, sourceBranch str
 
 	jsonRequest, err := json.Marshal(request)
 	if err != nil {
-		return *mrResponse, err
+		return mrResponse, err
 	}
 
 	req, _ := http.NewRequest(http.MethodPost, g.BaseURL+uri, bytes.NewBuffer(jsonRequest))
 	req.Header.Set("PRIVATE-TOKEN", g.Token)
 	req.Header.Set("Content-Type", "application/json")
 
-	err = doRequest(*req, &mrResponse)
+	response, err := g.Client.DoRequest(req)
 	if err != nil {
-		return *mrResponse, err
+		return mrResponse, err
 	}
 
-	return *mrResponse, nil
-}
-
-func doRequest(request http.Request, data interface{}) error {
-
-	resp, err := client.Do(&request)
+	err = g.Client.ProcessRequest(response, mrResponse)
 	if err != nil {
-		return err
+		return mrResponse, err
 	}
 
-	defer resp.Body.Close()
-
-	responseBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-
-		if err := json.Unmarshal(responseBody, data); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	return errors.New(string(responseBody))
+	return mrResponse, nil
 }

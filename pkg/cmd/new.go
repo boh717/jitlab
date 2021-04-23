@@ -20,17 +20,17 @@ func NewTicket() *cobra.Command {
 			projectKey := viper.GetString("board.location.projectkey")
 			columns := viper.GetStringSlice("columns")
 
-			issues, err := jiraClient.GetIssues(flowType, projectKey, columns, assignedToMe)
+			issues, err := jiraService.GetIssues(flowType, projectKey, columns, assignedToMe)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			chosenIssue, err := questionClient.AskForIssue(issues)
+			chosenIssue, err := questionService.AskForIssue(issues)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			cmdErr := gitClient.CreateBranch(chosenIssue)
+			cmdErr := gitService.CreateBranch(chosenIssue)
 			if cmdErr != nil {
 				log.Fatalln(err)
 			}

@@ -21,12 +21,12 @@ func MergeRequest() *cobra.Command {
 			removeSourceBranch, _ := cmd.Flags().GetBool("remove-source-branch")
 			squash, _ := cmd.Flags().GetBool("squash")
 
-			branch, err := gitClient.GetCurrentBranch()
+			branch, err := gitService.GetCurrentBranch()
 			if err != nil {
 				log.Fatalln("Error getting branch", err)
 			}
 
-			pushErr := gitClient.Push(branch)
+			pushErr := gitService.Push(branch)
 			if pushErr != nil {
 				log.Fatalln("Error pushing branch", pushErr)
 			}
@@ -41,12 +41,12 @@ func MergeRequest() *cobra.Command {
 			json.Unmarshal(file, &currentRepository)
 			projectId := fmt.Sprintf("%d", currentRepository.ID)
 
-			title, err := gitClient.CreateTitleFromBranch(branch)
+			title, err := gitService.CreateTitleFromBranch(branch)
 			if err != nil {
 				log.Fatalln("Error creating title from branch", err)
 			}
 
-			resp, err := gitlabClient.CreateMergeRequest(projectId, branch, targetBranch, title, removeSourceBranch, squash)
+			resp, err := gitlabService.CreateMergeRequest(projectId, branch, targetBranch, title, removeSourceBranch, squash)
 			if err != nil {
 				log.Fatalln("Error creating merge request", err)
 			}

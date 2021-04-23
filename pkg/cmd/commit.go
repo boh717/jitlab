@@ -11,7 +11,7 @@ func Commits() *cobra.Command {
 		Long:  `Commit your changes with a commit message following a pattern (for example, you may want to include a Jira ticket reference)`,
 		Run: func(cmd *cobra.Command, args []string) {
 			commitMessage, _ := cmd.Flags().GetString("message")
-			gitClient.Commit(commitMessage)
+			gitService.Commit(commitMessage)
 		},
 	}
 

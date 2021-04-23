@@ -24,7 +24,7 @@ func InitRepo() *cobra.Command {
 			}
 			currentDir := path.Base(currentPath)
 
-			repositories, err := gitlabClient.SearchProject(currentDir)
+			repositories, err := gitlabService.SearchProject(currentDir)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -35,7 +35,7 @@ func InitRepo() *cobra.Command {
 
 			var chosenRepo = repositories[0]
 			if len(repositories) > 1 {
-				chosenRepo, err = questionClient.AskForRepository(repositories)
+				chosenRepo, err = questionService.AskForRepository(repositories)
 				if err != nil {
 					log.Fatalln(err)
 				}

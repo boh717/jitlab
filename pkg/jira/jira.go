@@ -1,16 +1,13 @@
 package jira
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
-)
 
-var client = http.DefaultClient
+	"github.com/boh717/jitlab/pkg/rest"
+)
 
 type JiraService interface {
 	GetBoards() ([]Board, error)
@@ -19,6 +16,7 @@ type JiraService interface {
 }
 
 type JiraServiceImpl struct {
+	Client   rest.RestClient
 	BaseURL  string
 	Token    string
 	Username string
@@ -75,8 +73,13 @@ func (j JiraServiceImpl) GetBoards() ([]Board, error) {
 	req, _ := http.NewRequest(http.MethodGet, j.BaseURL+uri, nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", j.Token))
 
+	response, err := j.Client.DoRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
 	board := new(boardBase)
-	err := doRequest(*req, board)
+	err = j.Client.ProcessRequest(response, board)
 	if err != nil {
 		return nil, err
 	}
@@ -90,8 +93,13 @@ func (j JiraServiceImpl) GetBoardColumns(board Board) ([]Column, error) {
 	req, _ := http.NewRequest(http.MethodGet, j.BaseURL+uri, nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", j.Token))
 
+	response, err := j.Client.DoRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
 	boardConfig := new(boardConfig)
-	err := doRequest(*req, boardConfig)
+	err = j.Client.ProcessRequest(response, boardConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -106,8 +114,13 @@ func (j JiraServiceImpl) GetIssues(flowType string, projectKey string, columns [
 	req, _ := http.NewRequest(http.MethodGet, j.BaseURL+uri, nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", j.Token))
 
+	response, err := j.Client.DoRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
 	issue := new(issueBase)
-	err := doRequest(*req, issue)
+	err = j.Client.ProcessRequest(response, issue)
 	if err != nil {
 		return nil, err
 	}
@@ -135,28 +148,4 @@ func buildSearchString(flowType string, projectKey string, columns []string, cur
 	}
 
 	return searchString.String()
-}
-
-func doRequest(request http.Request, data interface{}) error {
-	resp, err := client.Do(&request)
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	responseBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= http.StatusNoContent {
-
-		if err := json.Unmarshal(responseBody, data); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	return errors.New(string(responseBody))
 }
