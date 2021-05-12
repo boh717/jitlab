@@ -69,9 +69,13 @@ type issueBase struct {
 
 func (j JiraServiceImpl) GetBoards() ([]Board, error) {
 	uri := "/rest/agile/1.0/board"
+	url := j.BaseURL + uri
+	headers := map[string]string{"Authorization": fmt.Sprintf("Basic %s", j.Token)}
 
-	req, _ := http.NewRequest(http.MethodGet, j.BaseURL+uri, nil)
-	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", j.Token))
+	req, err := j.Client.CreateRequest(http.MethodGet, url, headers, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	response, err := j.Client.DoRequest(req)
 	if err != nil {
@@ -79,7 +83,7 @@ func (j JiraServiceImpl) GetBoards() ([]Board, error) {
 	}
 
 	board := new(boardBase)
-	err = j.Client.ProcessRequest(response, board)
+	err = j.Client.ProcessResponse(response, board)
 	if err != nil {
 		return nil, err
 	}
@@ -89,9 +93,13 @@ func (j JiraServiceImpl) GetBoards() ([]Board, error) {
 
 func (j JiraServiceImpl) GetBoardColumns(board Board) ([]Column, error) {
 	uri := fmt.Sprintf("/rest/agile/1.0/board/%d/configuration", board.ID)
+	url := j.BaseURL + uri
+	headers := map[string]string{"Authorization": fmt.Sprintf("Basic %s", j.Token)}
 
-	req, _ := http.NewRequest(http.MethodGet, j.BaseURL+uri, nil)
-	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", j.Token))
+	req, err := j.Client.CreateRequest(http.MethodGet, url, headers, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	response, err := j.Client.DoRequest(req)
 	if err != nil {
@@ -99,7 +107,7 @@ func (j JiraServiceImpl) GetBoardColumns(board Board) ([]Column, error) {
 	}
 
 	boardConfig := new(boardConfig)
-	err = j.Client.ProcessRequest(response, boardConfig)
+	err = j.Client.ProcessResponse(response, boardConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -110,9 +118,13 @@ func (j JiraServiceImpl) GetBoardColumns(board Board) ([]Column, error) {
 func (j JiraServiceImpl) GetIssues(flowType string, projectKey string, columns []string, currentUser bool) ([]Issue, error) {
 	searchString := buildSearchString(flowType, projectKey, columns, currentUser)
 	uri := fmt.Sprintf("/rest/api/3/search?jql=%s&fields=summary,assignee&maxResults=50", url.QueryEscape(searchString))
+	url := j.BaseURL + uri
+	headers := map[string]string{"Authorization": fmt.Sprintf("Basic %s", j.Token)}
 
-	req, _ := http.NewRequest(http.MethodGet, j.BaseURL+uri, nil)
-	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", j.Token))
+	req, err := j.Client.CreateRequest(http.MethodGet, url, headers, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	response, err := j.Client.DoRequest(req)
 	if err != nil {
@@ -120,7 +132,7 @@ func (j JiraServiceImpl) GetIssues(flowType string, projectKey string, columns [
 	}
 
 	issue := new(issueBase)
-	err = j.Client.ProcessRequest(response, issue)
+	err = j.Client.ProcessResponse(response, issue)
 	if err != nil {
 		return nil, err
 	}

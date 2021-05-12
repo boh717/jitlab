@@ -3,24 +3,45 @@ package rest
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"io/ioutil"
 	"net/http"
 )
 
 type RestClient interface {
+	CreateRequest(method string, url string, headers map[string]string, payload io.Reader) (*http.Request, error)
 	DoRequest(req *http.Request) (*http.Response, error)
-	ProcessRequest(resp *http.Response, data interface{}) error
+	ProcessResponse(resp *http.Response, data interface{}) error
+}
+
+type httpClient interface {
+	Do(req *http.Request) (*http.Response, error)
 }
 
 type RestClientImpl struct {
-	Client http.Client
+	Client httpClient
 }
 
-func (r RestClientImpl) DoRequest(request *http.Request) (*http.Response, error) {
-	return r.Client.Do(request)
+func (r RestClientImpl) CreateRequest(method string, url string, headers map[string]string, payload io.Reader) (*http.Request, error) {
+
+	req, err := http.NewRequest(method, url, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	for key, element := range headers {
+		req.Header.Set(key, element)
+	}
+
+	return req, nil
 }
 
-func (r RestClientImpl) ProcessRequest(resp *http.Response, data interface{}) error {
+func (r RestClientImpl) DoRequest(req *http.Request) (*http.Response, error) {
+
+	return r.Client.Do(req)
+}
+
+func (r RestClientImpl) ProcessResponse(resp *http.Response, data interface{}) error {
 	defer resp.Body.Close()
 
 	responseBody, err := ioutil.ReadAll(resp.Body)

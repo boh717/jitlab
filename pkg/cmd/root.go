@@ -87,7 +87,7 @@ func initConfig() {
 	keyCommitSeparator := viper.GetString("keyCommitSeparator")
 	branchRegex := regexp.MustCompile(fmt.Sprintf("(%s)(\\w{1,6}-\\d{1,4})-(.*)(%s)", branchPrefix, branchSuffix))
 
-	client := rest.RestClientImpl{Client: *http.DefaultClient}
+	client := rest.RestClientImpl{Client: http.DefaultClient}
 	jiraService = jira.JiraServiceImpl{Client: client, BaseURL: validatedJiraBaseUrl.String(), Token: jiraToken, Username: jiraUsername}
 	gitlabService = gitlab.GitlabServiceImpl{Client: client, BaseURL: validatedGitlabBaseUrl.String(), Token: gitlabToken, Group: gitlabGroup}
 	gitService = git.GitServiceImpl{BranchPrefix: branchPrefix, BranchSuffix: branchSuffix, KeyCommitSeparator: keyCommitSeparator, BranchRegexp: branchRegex}

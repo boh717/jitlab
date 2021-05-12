@@ -43,9 +43,13 @@ type MergeRequestResponse struct {
 
 func (g GitlabServiceImpl) SearchProject(search string) ([]Repository, error) {
 	uri := fmt.Sprintf("/groups/%s/search?scope=projects&search=%s", g.Group, search)
+	url := g.BaseURL + uri
+	headers := map[string]string{"PRIVATE-TOKEN": g.Token}
 
-	req, _ := http.NewRequest(http.MethodGet, g.BaseURL+uri, nil)
-	req.Header.Set("PRIVATE-TOKEN", g.Token)
+	req, err := g.Client.CreateRequest(http.MethodGet, url, headers, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	response, err := g.Client.DoRequest(req)
 	if err != nil {
@@ -53,7 +57,7 @@ func (g GitlabServiceImpl) SearchProject(search string) ([]Repository, error) {
 	}
 
 	var repositories []Repository
-	err = g.Client.ProcessRequest(response, repositories)
+	err = g.Client.ProcessResponse(response, repositories)
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +68,8 @@ func (g GitlabServiceImpl) SearchProject(search string) ([]Repository, error) {
 func (g GitlabServiceImpl) CreateMergeRequest(projectId string, sourceBranch string, targetBranch string, title string, removeSourceBranch bool, squash bool) (MergeRequestResponse, error) {
 	mrResponse := MergeRequestResponse{}
 	uri := fmt.Sprintf("/projects/%s/merge_requests", projectId)
+	url := g.BaseURL + uri
+	headers := map[string]string{"PRIVATE-TOKEN": g.Token, "Content-Type": "application/json"}
 	request := mrRequest{
 		ID:                 projectId,
 		SourceBranch:       sourceBranch,
@@ -77,16 +83,17 @@ func (g GitlabServiceImpl) CreateMergeRequest(projectId string, sourceBranch str
 		return mrResponse, err
 	}
 
-	req, _ := http.NewRequest(http.MethodPost, g.BaseURL+uri, bytes.NewBuffer(jsonRequest))
-	req.Header.Set("PRIVATE-TOKEN", g.Token)
-	req.Header.Set("Content-Type", "application/json")
+	req, err := g.Client.CreateRequest(http.MethodPost, url, headers, bytes.NewBuffer(jsonRequest))
+	if err != nil {
+		return mrResponse, err
+	}
 
 	response, err := g.Client.DoRequest(req)
 	if err != nil {
 		return mrResponse, err
 	}
 
-	err = g.Client.ProcessRequest(response, mrResponse)
+	err = g.Client.ProcessResponse(response, mrResponse)
 	if err != nil {
 		return mrResponse, err
 	}
