@@ -9,6 +9,7 @@ import (
 	"path"
 	"regexp"
 
+	"github.com/boh717/jitlab/pkg/command"
 	"github.com/boh717/jitlab/pkg/git"
 	"github.com/boh717/jitlab/pkg/gitlab"
 	"github.com/boh717/jitlab/pkg/jira"
@@ -88,8 +89,9 @@ func initConfig() {
 	branchRegex := regexp.MustCompile(fmt.Sprintf("(%s)(\\w{1,6}-\\d{1,4})-(.*)(%s)", branchPrefix, branchSuffix))
 
 	client := rest.RestClientImpl{Client: http.DefaultClient}
+	commandClient := command.CommandClientImpl{}
 	jiraService = jira.JiraServiceImpl{Client: client, BaseURL: validatedJiraBaseUrl.String(), Token: jiraToken, Username: jiraUsername}
 	gitlabService = gitlab.GitlabServiceImpl{Client: client, BaseURL: validatedGitlabBaseUrl.String(), Token: gitlabToken, Group: gitlabGroup}
-	gitService = git.GitServiceImpl{BranchPrefix: branchPrefix, BranchSuffix: branchSuffix, KeyCommitSeparator: keyCommitSeparator, BranchRegexp: branchRegex}
+	gitService = git.GitServiceImpl{CommandClient: commandClient, BranchPrefix: branchPrefix, BranchSuffix: branchSuffix, KeyCommitSeparator: keyCommitSeparator, BranchRegexp: branchRegex}
 	questionService = question.QuestionServiceImpl{}
 }

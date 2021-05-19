@@ -23,12 +23,12 @@ func MergeRequest() *cobra.Command {
 
 			branch, err := gitService.GetCurrentBranch()
 			if err != nil {
-				log.Fatalln("Error getting branch", err)
+				log.Fatalln(err)
 			}
 
-			pushErr := gitService.Push(branch)
+			_, pushErr := gitService.Push(branch)
 			if pushErr != nil {
-				log.Fatalln("Error pushing branch", pushErr)
+				log.Fatalln(pushErr)
 			}
 
 			var currentRepository gitlab.Repository

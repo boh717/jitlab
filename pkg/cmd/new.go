@@ -30,10 +30,12 @@ func NewTicket() *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			cmdErr := gitService.CreateBranch(chosenIssue)
-			if cmdErr != nil {
+			newBranch, err := gitService.CreateBranch(chosenIssue)
+			if err != nil {
 				log.Fatalln(err)
 			}
+
+			log.Printf("New branch \"%s\" created", newBranch)
 		},
 	}
 

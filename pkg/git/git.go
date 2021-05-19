@@ -1,24 +1,25 @@
 package git
 
 import (
-	"bytes"
+	"errors"
 	"fmt"
-	"os/exec"
 	"regexp"
 	"strings"
 
+	"github.com/boh717/jitlab/pkg/command"
 	"github.com/boh717/jitlab/pkg/jira"
 )
 
 type GitService interface {
 	GetCurrentBranch() (string, error)
-	CreateBranch(issue jira.Issue) error
+	CreateBranch(issue jira.Issue) (string, error)
 	CreateTitleFromBranch(branch string) (string, error)
-	Commit(message string) error
-	Push(branch string) error
+	Commit(branch string, message string) (string, error)
+	Push(branch string) (string, error)
 }
 
 type GitServiceImpl struct {
+	CommandClient      command.CommandClient
 	BranchPrefix       string
 	BranchSuffix       string
 	KeyCommitSeparator string
@@ -26,20 +27,17 @@ type GitServiceImpl struct {
 }
 
 func (g GitServiceImpl) GetCurrentBranch() (string, error) {
-	var out bytes.Buffer
 	replacer := strings.NewReplacer(" ", "", "\n", "")
 
-	command := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
-	command.Stdout = &out
-	err := command.Run()
+	out, err := g.CommandClient.Run("git", "branch", "--show-current")
 	if err != nil {
-		return "", err
+		return "", errors.New(fmt.Sprint(err) + ": " + string(out))
 	}
 
-	return replacer.Replace(out.String()), nil
+	return replacer.Replace(string(out)), nil
 }
 
-func (g GitServiceImpl) CreateBranch(issue jira.Issue) error {
+func (g GitServiceImpl) CreateBranch(issue jira.Issue) (string, error) {
 	replacer :=
 		strings.NewReplacer(" ", "-", "~", "", "^", "", ":", "", "?", "", "*", "", "[", "", "]", "", "{", "", "}", "", "\\", "")
 
@@ -48,8 +46,12 @@ func (g GitServiceImpl) CreateBranch(issue jira.Issue) error {
 
 	branchName := fmt.Sprintf("%s%s-%s%s", g.BranchPrefix, issueKey, summary, g.BranchSuffix)
 
-	command := exec.Command("git", "switch", "-c", branchName)
-	return command.Run()
+	out, err := g.CommandClient.Run("git", "switch", "-c", branchName)
+	if err != nil {
+		return "", errors.New(fmt.Sprint(err) + ": " + string(out))
+	}
+
+	return branchName, nil
 
 }
 
@@ -72,12 +74,8 @@ func (g GitServiceImpl) CreateTitleFromBranch(branch string) (string, error) {
 
 }
 
-func (g GitServiceImpl) Commit(message string) error {
+func (g GitServiceImpl) Commit(branch string, message string) (string, error) {
 	var commitMessage string
-	branch, err := g.GetCurrentBranch()
-	if err != nil {
-		return err
-	}
 
 	key := getIssueKeyFromBranch(branch, g.BranchRegexp)
 
@@ -86,13 +84,23 @@ func (g GitServiceImpl) Commit(message string) error {
 		commitMessage = fmt.Sprintf("%s%s%s", key, g.KeyCommitSeparator, commitMessage)
 	}
 
-	command := exec.Command("git", "commit", "-m", commitMessage)
-	return command.Run()
+	out, err := g.CommandClient.Run("git", "commit", "-m", commitMessage)
+	if err != nil {
+		return "", errors.New(fmt.Sprint(err) + ": " + string(out))
+	}
+
+	return commitMessage, nil
+
 }
 
-func (g GitServiceImpl) Push(branch string) error {
-	command := exec.Command("git", "push", "--set-upstream", "origin", branch)
-	return command.Run()
+func (g GitServiceImpl) Push(branch string) (string, error) {
+	out, err := g.CommandClient.Run("git", "push", "--set-upstream", "origin", branch)
+	if err != nil {
+		return "", errors.New(fmt.Sprint(err) + ": " + string(out))
+	}
+
+	return string(out), nil
+
 }
 
 func getIssueKeyFromBranch(branch string, r *regexp.Regexp) string {
