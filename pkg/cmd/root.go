@@ -86,7 +86,7 @@ func initConfig() {
 	branchPrefix := viper.GetString("branchPrefix")
 	branchSuffix := viper.GetString("branchSuffix")
 	keyCommitSeparator := viper.GetString("keyCommitSeparator")
-	branchRegex := regexp.MustCompile(fmt.Sprintf("(%s)(\\w{1,6}-\\d{1,4})-(.*)(%s)", branchPrefix, branchSuffix))
+	branchRegex := regexp.MustCompile(fmt.Sprintf("(%s)(\\w{1,6}-\\d{1,5})-(.*)(%s)", branchPrefix, branchSuffix))
 
 	client := rest.RestClientImpl{Client: http.DefaultClient}
 	commandClient := command.CommandClientImpl{}

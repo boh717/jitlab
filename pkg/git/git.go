@@ -63,7 +63,7 @@ func (g GitServiceImpl) CreateTitleFromBranch(branch string) (string, error) {
 
 	switch {
 	case key != "" && prettyTitle != "":
-		return fmt.Sprintf("%s: %s", key, prettyTitle), nil
+		return fmt.Sprintf("%s%s %s", key, g.KeyCommitSeparator, prettyTitle), nil
 
 	case key == "" && prettyTitle != "":
 		return prettyTitle, nil
@@ -81,7 +81,7 @@ func (g GitServiceImpl) Commit(branch string, message string) (string, error) {
 
 	commitMessage = message
 	if key != "" {
-		commitMessage = fmt.Sprintf("%s%s%s", key, g.KeyCommitSeparator, commitMessage)
+		commitMessage = fmt.Sprintf("%s%s %s", key, g.KeyCommitSeparator, commitMessage)
 	}
 
 	out, err := g.CommandClient.Run("git", "commit", "-m", commitMessage)

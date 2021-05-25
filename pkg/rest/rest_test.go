@@ -45,7 +45,7 @@ func TestCreateRequest(t *testing.T) {
 		"POST with headers and no payload": {method: "POST", headers: map[string]string{"MyToken": "secret-token"}, payload: nil},
 		"POST with headers and payload":    {method: "GET", headers: map[string]string{"MyToken": "secret-token", "Content-Type": "application/json"}, payload: strings.NewReader(payload)},
 	}
-	mockHttpClient := mocks.MockClient{}
+	mockHttpClient := mocks.MockRestClient{}
 	restClient := rest.RestClientImpl{Client: mockHttpClient}
 
 	for name, tc := range tests {
@@ -93,7 +93,7 @@ func TestWrongCreateRequest(t *testing.T) {
 		"Bad method": {method: "Bad method", url: "http://www.example.com"},
 		"Bad URL":    {method: "POST", url: " http://www.example.com"},
 	}
-	mockHttpClient := mocks.MockClient{}
+	mockHttpClient := mocks.MockRestClient{}
 	restClient := rest.RestClientImpl{Client: mockHttpClient}
 
 	for name, tc := range tests {
@@ -116,7 +116,7 @@ func TestDoRequest(t *testing.T) {
 		"Successful request": {externalOutput: successfulResponse, expectedSuccess: true},
 		"Wrong request":      {externalOutput: errorResponse, expectedSuccess: false},
 	}
-	mockHttpClient := mocks.MockClient{}
+	mockHttpClient := mocks.MockRestClient{}
 	restClient := rest.RestClientImpl{Client: mockHttpClient}
 
 	for name, tc := range tests {
@@ -152,7 +152,7 @@ func TestProcessResponse(t *testing.T) {
 		"Malformed json":     {statusCode: 200, body: `{"firstName""Mario","lastName":"Rossi","age":25}`, want: nil, expectedSuccess: false},
 		"Resource not found": {statusCode: 404, body: "Resource not found", want: nil, expectedSuccess: false},
 	}
-	mockHttpClient := mocks.MockClient{}
+	mockHttpClient := mocks.MockRestClient{}
 	restClient := rest.RestClientImpl{Client: mockHttpClient}
 
 	for name, tc := range tests {
