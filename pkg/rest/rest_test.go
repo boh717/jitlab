@@ -148,9 +148,9 @@ func TestProcessResponse(t *testing.T) {
 		want            *person
 		expectedSuccess bool
 	}{
-		"Successful path":    {statusCode: 200, body: `{"firstName":"Mario","lastName":"Rossi","age":25}`, want: &person{FirstName: "Mario", LastName: "Rossi", Age: 25}, expectedSuccess: true},
-		"Malformed json":     {statusCode: 200, body: `{"firstName""Mario","lastName":"Rossi","age":25}`, want: nil, expectedSuccess: false},
-		"Resource not found": {statusCode: 404, body: "Resource not found", want: nil, expectedSuccess: false},
+		"Successful path":    {200, `{"firstName":"Mario","lastName":"Rossi","age":25}`, &person{FirstName: "Mario", LastName: "Rossi", Age: 25}, true},
+		"Malformed json":     {200, `{"firstName""Mario","lastName":"Rossi","age":25}`, nil, false},
+		"Resource not found": {404, "Resource not found", nil, false},
 	}
 	mockHttpClient := mocks.MockRestClient{}
 	restClient := rest.RestClientImpl{Client: mockHttpClient}

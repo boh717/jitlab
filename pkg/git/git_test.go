@@ -18,11 +18,11 @@ func TestGetCurrentBranch(t *testing.T) {
 		command        func(command string, args ...string) ([]byte, error)
 		expectedBranch string
 	}{
-		"Return current branch": {command: func(command string, args ...string) ([]byte, error) { return []byte(branchName), nil }, expectedBranch: branchName},
-		"Return branch correctly stripped": {command: func(command string, args ...string) ([]byte, error) {
+		"Return current branch": {func(command string, args ...string) ([]byte, error) { return []byte(branchName), nil }, branchName},
+		"Return branch correctly stripped": {func(command string, args ...string) ([]byte, error) {
 			return []byte(fmt.Sprintf("\n%s \n", branchName)), nil
-		}, expectedBranch: branchName},
-		"Return error": {command: func(command string, args ...string) ([]byte, error) { return nil, errors.New("Fatal!") }, expectedBranch: ""},
+		}, branchName},
+		"Return error": {func(command string, args ...string) ([]byte, error) { return nil, errors.New("Fatal!") }, ""},
 	}
 	mockCommandClient := mocks.MockCommandClient{}
 	gitClient := git.GitServiceImpl{CommandClient: mockCommandClient}
@@ -50,15 +50,15 @@ func TestCreateBranch(t *testing.T) {
 		issue          jira.Issue
 		expectedBranch string
 	}{
-		"Return created branch": {command: func(command string, args ...string) ([]byte, error) {
+		"Return created branch": {func(command string, args ...string) ([]byte, error) {
 			return []byte("Success"), nil
-		}, issue: initJiraIssue("JT-01", "Complete this task"), expectedBranch: "prefix/JT-01-complete-this-task-suffix"},
-		"Return created branch correctly stripped": {command: func(command string, args ...string) ([]byte, error) {
+		}, initJiraIssue("JT-01", "Complete this task"), "prefix/JT-01-complete-this-task-suffix"},
+		"Return created branch correctly stripped": {func(command string, args ...string) ([]byte, error) {
 			return []byte("Success"), nil
-		}, issue: initJiraIssue("JT-01", "[POC] Complete this task maybe?"), expectedBranch: "prefix/JT-01-poc-complete-this-task-maybe-suffix"},
-		"Return error": {command: func(command string, args ...string) ([]byte, error) {
+		}, initJiraIssue("JT-01", "[POC] Complete this task maybe?"), "prefix/JT-01-poc-complete-this-task-maybe-suffix"},
+		"Return error": {func(command string, args ...string) ([]byte, error) {
 			return nil, errors.New("Failed creating branch")
-		}, issue: initJiraIssue("JT-01", "[POC] Complete this task maybe?"), expectedBranch: ""},
+		}, initJiraIssue("JT-01", "[POC] Complete this task maybe?"), ""},
 	}
 	mockCommandClient := mocks.MockCommandClient{}
 	gitClient := git.GitServiceImpl{
@@ -127,12 +127,12 @@ func TestCommit(t *testing.T) {
 		message           string
 		expectedCommitMsg string
 	}{
-		"Return commit message": {command: func(command string, args ...string) ([]byte, error) {
+		"Return commit message": {func(command string, args ...string) ([]byte, error) {
 			return []byte("Success"), nil
-		}, branch: "prefix/JT-01-complete-this-task", message: "Add feature X", expectedCommitMsg: "JT-01: Add feature X"},
-		"Return error": {command: func(command string, args ...string) ([]byte, error) {
+		}, "prefix/JT-01-complete-this-task", "Add feature X", "JT-01: Add feature X"},
+		"Return error": {func(command string, args ...string) ([]byte, error) {
 			return nil, errors.New("Fatal!")
-		}, branch: "prefix/JT-01-complete-this-task", message: "Add feature X", expectedCommitMsg: ""},
+		}, "prefix/JT-01-complete-this-task", "Add feature X", ""},
 	}
 	mockCommandClient := mocks.MockCommandClient{}
 	gitClient := git.GitServiceImpl{
@@ -165,8 +165,8 @@ func TestPush(t *testing.T) {
 		branch          string
 		expectedPushMsg string
 	}{
-		"Return push message": {command: func(command string, args ...string) ([]byte, error) { return []byte("Success"), nil }, branch: "prefix/JT-01-complete-this-task", expectedPushMsg: "Success"},
-		"Return push error":   {command: func(command string, args ...string) ([]byte, error) { return nil, errors.New("Fatal!") }, branch: "prefix/JT-01-complete-this-task", expectedPushMsg: ""},
+		"Return push message": {func(command string, args ...string) ([]byte, error) { return []byte("Success"), nil }, "prefix/JT-01-complete-this-task", "Success"},
+		"Return push error":   {func(command string, args ...string) ([]byte, error) { return nil, errors.New("Fatal!") }, "prefix/JT-01-complete-this-task", ""},
 	}
 	mockCommandClient := mocks.MockCommandClient{}
 	gitClient := git.GitServiceImpl{CommandClient: mockCommandClient}

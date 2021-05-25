@@ -14,12 +14,12 @@ func TestBuildSearchString(t *testing.T) {
 		currentUser bool
 		want        string
 	}{
-		"Kanban without user assigned": {flowType: "kanban", projectKey: "TEST", columns: []string{"ToDo", "InProgress"}, currentUser: false, want: "project = TEST AND status in (\"ToDo\", \"InProgress\") AND type != Epic ORDER BY Rank DESC"},
-		"Kanban with user assigned":    {flowType: "kanban", projectKey: "TEST", columns: []string{"ToDo", "InProgress"}, currentUser: true, want: "project = TEST AND status in (\"ToDo\", \"InProgress\") AND type != Epic AND assignee=currentUser() ORDER BY Rank DESC"},
-		"Simple without user assigned": {flowType: "simple", projectKey: "TEST", columns: []string{"ToDo", "InProgress"}, currentUser: false, want: "project = TEST AND status in (\"ToDo\", \"InProgress\") AND type != Epic ORDER BY Rank DESC"},
-		"Simple with user assigned":    {flowType: "simple", projectKey: "TEST", columns: []string{"ToDo", "InProgress"}, currentUser: true, want: "project = TEST AND status in (\"ToDo\", \"InProgress\") AND type != Epic AND assignee=currentUser() ORDER BY Rank DESC"},
-		"Scrum without user assigned":  {flowType: "scrum", projectKey: "TEST", columns: []string{"ToDo", "InProgress"}, currentUser: false, want: "project = TEST AND status in (\"ToDo\", \"InProgress\") AND type != Epic AND sprint in openSprints()"},
-		"Scrum with user assigned":     {flowType: "scrum", projectKey: "TEST", columns: []string{"ToDo", "InProgress"}, currentUser: true, want: "project = TEST AND status in (\"ToDo\", \"InProgress\") AND type != Epic AND assignee=currentUser() AND sprint in openSprints()"},
+		"Kanban without user assigned": {"kanban", "TEST", []string{"ToDo", "InProgress"}, false, "project = TEST AND status in (\"ToDo\", \"InProgress\") AND type != Epic ORDER BY Rank DESC"},
+		"Kanban with user assigned":    {"kanban", "TEST", []string{"ToDo", "InProgress"}, true, "project = TEST AND status in (\"ToDo\", \"InProgress\") AND type != Epic AND assignee=currentUser() ORDER BY Rank DESC"},
+		"Simple without user assigned": {"simple", "TEST", []string{"ToDo", "InProgress"}, false, "project = TEST AND status in (\"ToDo\", \"InProgress\") AND type != Epic ORDER BY Rank DESC"},
+		"Simple with user assigned":    {"simple", "TEST", []string{"ToDo", "InProgress"}, true, "project = TEST AND status in (\"ToDo\", \"InProgress\") AND type != Epic AND assignee=currentUser() ORDER BY Rank DESC"},
+		"Scrum without user assigned":  {"scrum", "TEST", []string{"ToDo", "InProgress"}, false, "project = TEST AND status in (\"ToDo\", \"InProgress\") AND type != Epic AND sprint in openSprints()"},
+		"Scrum with user assigned":     {"scrum", "TEST", []string{"ToDo", "InProgress"}, true, "project = TEST AND status in (\"ToDo\", \"InProgress\") AND type != Epic AND assignee=currentUser() AND sprint in openSprints()"},
 	}
 
 	for name, tc := range tests {
