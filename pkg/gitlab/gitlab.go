@@ -56,17 +56,17 @@ func (g GitlabServiceImpl) SearchProject(search string) ([]Repository, error) {
 		return nil, err
 	}
 
-	var repositories []Repository
+	repositories := new([]Repository)
 	err = g.Client.ProcessResponse(response, repositories)
 	if err != nil {
 		return nil, err
 	}
 
-	return repositories, nil
+	return *repositories, nil
 }
 
 func (g GitlabServiceImpl) CreateMergeRequest(projectId string, sourceBranch string, targetBranch string, title string, removeSourceBranch bool, squash bool) (MergeRequestResponse, error) {
-	mrResponse := MergeRequestResponse{}
+	mrResponse := new(MergeRequestResponse)
 	uri := fmt.Sprintf("/projects/%s/merge_requests", projectId)
 	url := g.BaseURL + uri
 	headers := map[string]string{"PRIVATE-TOKEN": g.Token, "Content-Type": "application/json"}
@@ -80,23 +80,23 @@ func (g GitlabServiceImpl) CreateMergeRequest(projectId string, sourceBranch str
 
 	jsonRequest, err := json.Marshal(request)
 	if err != nil {
-		return mrResponse, err
+		return *mrResponse, err
 	}
 
 	req, err := g.Client.CreateRequest(http.MethodPost, url, headers, bytes.NewBuffer(jsonRequest))
 	if err != nil {
-		return mrResponse, err
+		return *mrResponse, err
 	}
 
 	response, err := g.Client.DoRequest(req)
 	if err != nil {
-		return mrResponse, err
+		return *mrResponse, err
 	}
 
 	err = g.Client.ProcessResponse(response, mrResponse)
 	if err != nil {
-		return mrResponse, err
+		return *mrResponse, err
 	}
 
-	return mrResponse, nil
+	return *mrResponse, nil
 }
