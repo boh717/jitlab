@@ -1,3 +1,5 @@
+After implementing [this project in Python](https://github.com/boh717/jitab), I decided to learn Go and see what I could come up with. The result is quite satisfactory (not perfect though).
+
 ## Configuration Prerequisites
 
 Start with the following json file (e.g. ~/.jitlab.json)
