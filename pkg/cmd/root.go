@@ -65,6 +65,8 @@ func initConfig() {
 
 	if err := viper.ReadInConfig(); err == nil {
 		log.Println("Using config file:", viper.ConfigFileUsed())
+	} else {
+		log.Fatalf("Config file %s not found", cfgFile)
 	}
 
 	jiraUrl := viper.GetString("jira.baseurl")
